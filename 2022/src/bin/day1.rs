@@ -2,7 +2,7 @@ use std::error;
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 // Better solution
 fn main() -> Result<()> {
-   let mut max = include_str!("input1.txt")
+   let mut max = include_str!("./input/input1.txt")
    .split("\n\n")
    .map(|x| {
         return x
