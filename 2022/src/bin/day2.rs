@@ -1,4 +1,4 @@
-use std::{str::FromStr, error, char::ParseCharError};
+use std::{str::FromStr, char::ParseCharError};
 
 #[derive(Debug)]
 enum Move {
@@ -15,10 +15,8 @@ enum Outcome {
 }
 
 #[derive(Debug)]
-struct GamePart2(Move, Outcome);
-
-#[derive(Debug)]
 struct GamePart1(Move, Move);
+
 impl FromStr for GamePart1   {
     type Err = ParseCharError;
 
@@ -31,9 +29,9 @@ impl FromStr for GamePart1   {
             'C' => Move::SISSORS,
             _ => panic!("Undefined"),
         };
+
         iter.next(); // space between moves
 
-        // Part 1
         let second = match iter.next().unwrap() {
             'X' => Move::ROCK,
             'Y' => Move::PAPER,
@@ -44,6 +42,37 @@ impl FromStr for GamePart1   {
         Ok(GamePart1(first, second))
     }
 }
+
+impl GamePart1 {
+   fn get_score(&self) -> i32 {
+        match self.0 {
+            Move::ROCK => {
+                match self.1 {
+                    Move::ROCK => 3 + ROCK_SCORE,
+                    Move::PAPER => 6 + PAPER_SCORE,
+                    Move::SISSORS => 0 + SISSORS_SCORE,
+                }
+            },
+            Move::PAPER => {
+                match self.1 {
+                    Move::ROCK => 0 + ROCK_SCORE,
+                    Move::PAPER => 3 + PAPER_SCORE,
+                    Move::SISSORS => 6  + SISSORS_SCORE,
+                }
+            }
+            Move::SISSORS => {
+                match self.1 {
+                    Move::ROCK => 6 + ROCK_SCORE,
+                    Move::PAPER => 0 + PAPER_SCORE,
+                    Move::SISSORS => 3 + SISSORS_SCORE,
+                }
+            }
+        }
+   }
+}
+
+#[derive(Debug)]
+struct GamePart2(Move, Outcome);
 
 impl FromStr for GamePart2 {
     type Err = ParseCharError;
@@ -92,35 +121,6 @@ impl GamePart2 {
                     Outcome::WIN => 6 + ROCK_SCORE,
                     Outcome::LOSE => 0 + PAPER_SCORE,
                     Outcome::DRAW => 3 + SISSORS_SCORE,
-                }
-            }
-        }
-   }
-
-}
-
-impl GamePart1 {
-   fn get_score(&self) -> i32 {
-        match self.0 {
-            Move::ROCK => {
-                match self.1 {
-                    Move::ROCK => 3 + ROCK_SCORE,
-                    Move::PAPER => 6 + PAPER_SCORE,
-                    Move::SISSORS => 0 + SISSORS_SCORE,
-                }
-            },
-            Move::PAPER => {
-                match self.1 {
-                    Move::ROCK => 0 + ROCK_SCORE,
-                    Move::PAPER => 3 + PAPER_SCORE,
-                    Move::SISSORS => 6  + SISSORS_SCORE,
-                }
-            }
-            Move::SISSORS => {
-                match self.1 {
-                    Move::ROCK => 6 + ROCK_SCORE,
-                    Move::PAPER => 0 + PAPER_SCORE,
-                    Move::SISSORS => 3 + SISSORS_SCORE,
                 }
             }
         }
