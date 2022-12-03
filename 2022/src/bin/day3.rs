@@ -40,14 +40,14 @@ fn part_1_function(input: &Vec<&str>) -> u32 {
 
             (first_half, second_half)
         })
-    .map(|(first, second)| {
+        .map(|(first, second)| {
         first
             .chars()
             .filter(|x| second.contains(*x))
             .nth(0)
             .unwrap()
-    })
-    .map(|x| get_priority(x))
+        })
+        .map(|x| get_priority(x))
         .sum::<u32>()
 }
 
@@ -65,7 +65,7 @@ fn part_2_function(input: &Vec<&str>) -> u32 {
             first.chars().filter(|x| second.contains(*x) && third.contains(*x)).nth(0).unwrap()
 
         })
-    .map(|x| get_priority(x))
+        .map(|x| get_priority(x))
         .sum::<u32>()
 }
 
