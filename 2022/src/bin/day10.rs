@@ -3,6 +3,17 @@ use std::{collections::{HashMap, HashSet}, slice::Windows, str::FromStr, f32::co
 use anyhow::{Result, Ok};
 use itertools::Itertools;
 
+#[macro_export]
+macro_rules! update_screen {
+    ( $clock:ident, $pos:ident, $row:ident ) => {
+        if (($clock % 40) as isize >= $pos - 1) && (($clock % 40)as isize <= $pos + 1) {
+                $row[$clock % 40] = '#';
+        }  else {
+            $row[$clock % 40] = '.';
+        }
+    };
+}
+
 #[derive(Debug)]
 enum Command {
     AddX(isize),
@@ -47,7 +58,6 @@ fn main() -> Result<()> {
 
 
 fn part_1_function(input: &Vec<Command>) -> isize {
-    let mut clock = 0;
     let mut x_reg = 1;
     let mut x_values = vec![];
 
@@ -58,17 +68,14 @@ fn part_1_function(input: &Vec<Command>) -> isize {
         match command {
             Command::AddX(value) => {
                 // load 
-                clock += 1;
                 x_values.push(x_reg);
                 // execute
-                clock += 1;
                 x_values.push(x_reg);
 
                 x_reg += value;
             },
             Command::NOOP => {
                 // load and exe
-                clock += 1;
                 x_values.push(x_reg);
             }
         }
@@ -88,7 +95,7 @@ fn part_1_function(input: &Vec<Command>) -> isize {
 
 
 
-fn part_2_function(input: &Vec<Command>) -> isize {
+fn part_2_function(input: &Vec<Command>) -> Vec<Vec<char>> {
     let mut clock: usize = 0;
     let mut x_reg: isize = 1;
     let mut row = vec!['.'; 40];
@@ -98,22 +105,16 @@ fn part_2_function(input: &Vec<Command>) -> isize {
     for command in input.iter()  {
         match command {
             Command::AddX(value) => {
-                if ((clock % 40) as isize == x_reg - 1) || ((clock % 40) as isize == x_reg)  || ((clock % 40)as isize == x_reg + 1) {
-                    row[clock % 40] = '#';
-                }  else {
-                    row[clock % 40] = '.';
-                }
-                // load 
+
+                update_screen!(clock, x_reg, row);
+
                 clock += 1;
+
                 if clock % 40 == 0 {
                     screen.push(row.clone());
                     row = vec!['.'; 40];
                 }
-                if ((clock % 40) as isize == x_reg - 1) || ((clock % 40) as isize == x_reg)  || ((clock % 40)as isize == x_reg + 1) {
-                    row[clock % 40] = '#';
-                }  else {
-                    row[clock % 40] = '.';
-                }
+                update_screen!(clock, x_reg, row);
 
                 // execute
                 clock += 1;
@@ -122,12 +123,7 @@ fn part_2_function(input: &Vec<Command>) -> isize {
                     screen.push(row.clone());
                     row = vec!['.'; 40];
                 }
-                if ((clock % 40) as isize == x_reg - 1) || ((clock % 40) as isize == x_reg)  || ((clock % 40)as isize == x_reg + 1) {
-                    row[clock % 40] = '#';
-                }  else {
-                    row[clock % 40] = '.';
-                }
-
+                update_screen!(clock, x_reg, row);
             },
             Command::NOOP => {
                 // load and exe
@@ -136,11 +132,7 @@ fn part_2_function(input: &Vec<Command>) -> isize {
                     screen.push(row.clone());
                     row = vec!['.'; 40];
                 }
-                if ((clock % 40) as isize == x_reg - 1) || ((clock % 40) as isize == x_reg)  || ((clock % 40)as isize == x_reg + 1) {
-                    row[clock % 40] = '#';
-                }  else {
-                    row[clock % 40] = '.';
-                }
+                update_screen!(clock, x_reg, row);
             }
         }
         
@@ -153,7 +145,7 @@ fn part_2_function(input: &Vec<Command>) -> isize {
         println!("{}", row);
     } 
 
-    -1
+    screen
 }
 
 #[cfg(test)]
@@ -308,14 +300,13 @@ noop
 noop";
 
     #[test]
-    #[ignore = "done"]
     fn part_1() {
 
     let items = INPUT
                                 .lines()
                                 .map(|x| x.parse::<Command>().unwrap())
                                 .collect_vec();
-        assert_eq!(part_1_function(&items), 420);
+        assert_eq!(part_1_function(&items), 13140);
     }
 
     #[test]
@@ -325,7 +316,20 @@ noop";
                                 .lines()
                                 .map(|x| x.parse::<Command>().unwrap())
                                 .collect_vec();
-        assert_eq!(part_2_function(&items), 0);
+        let mut test_screen = vec![];
+        let row_1 = "##..##..##..##..##..##..##..##..##..##..".chars().collect_vec();
+        let row_2 = "###...###...###...###...###...###...###.".chars().collect_vec();
+        let row_3 = "####....####....####....####....####....".chars().collect_vec();
+        let row_4 = "#####.....#####.....#####.....#####.....".chars().collect_vec();
+        let row_5 = "######......######......######......####".chars().collect_vec();
+        let row_6 = "#######.......#######.......#######.....".chars().collect_vec();
+        test_screen.push(row_1);
+        test_screen.push(row_2);
+        test_screen.push(row_3);
+        test_screen.push(row_4);
+        test_screen.push(row_5);
+        test_screen.push(row_6);
+        assert_eq!(part_2_function(&items), test_screen);
     }
 }
 
