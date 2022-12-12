@@ -4,14 +4,49 @@ use std::str::FromStr;
 use anyhow::{Result, Ok};
 use itertools::Itertools;
 
+/// Adds a character to the screen based on the clock and current regeister value
 #[macro_export]
 macro_rules! update_screen {
     ( $clock:ident, $pos:ident, $row:ident ) => {
+   
         if (($clock % 40) as isize >= $pos - 1) && (($clock % 40)as isize <= $pos + 1) {
                 $row[$clock % 40] = '#';
         }  else {
             $row[$clock % 40] = '.';
         }
+    };
+}
+
+#[macro_export]
+macro_rules! print_screen {
+    ( $height:literal, $width:literal, $screen:ident ) => {
+        for x in 0..$height {
+            let mut row = String::new();
+            for y in 0..$width {
+                row +=  format!(" {} ", $screen[x][y].to_string()).as_str();
+            }
+            println!("{}", row);
+        } 
+   
+        // if (($clock % 40) as isize >= $pos - 1) && (($clock % 40)as isize <= $pos + 1) {
+        //         $row[$clock % 40] = '#';
+        // }  else {
+        //     $row[$clock % 40] = '.';
+        // }
+    };
+}
+
+/// Save the current row to the screen and creates a new row on every
+/// 40th clock tick
+#[macro_export]
+macro_rules! new_row {
+    ($clock:ident, $screen:ident, $row:ident) => {
+        // checks for the clock tick to see if a new row should be added 
+        if $clock % 40 == 0 {
+            $screen.push($row.clone());
+            $row = vec!['.'; 40];
+        }
+        
     };
 }
 
@@ -32,7 +67,7 @@ impl FromStr for Command {
 
                 return Ok(Command::AddX(num.parse::<isize>().unwrap()));
             } else {
-                panic!()
+                anyhow::bail!("Invalid input");
             }
         }
     }
@@ -63,7 +98,7 @@ fn part_1_function(input: &Vec<Command>) -> isize {
     let mut x_values = vec![];
 
     // Start instruction
-    x_values.push(-1);
+    x_values.push(0);
 
     for command in input.iter()  {
         match command {
@@ -82,15 +117,25 @@ fn part_1_function(input: &Vec<Command>) -> isize {
         }
         
     }
-    let mut signal = 0;
-    for (idx, value) in x_values.iter().enumerate() {
-        if idx == 20 || idx == 60 || idx == 100 || idx == 140 || idx == 180 || idx == 220 {
-            let signal_val = idx as isize * value;
-            signal += signal_val
-        }
-    }
 
-    signal
+    x_values
+    .iter()
+    .enumerate()
+    .filter(|(idx, _)| idx % 20 == 0 && idx % 40 != 0 )
+    .map(|(idx, value)| value * idx as isize)
+    .sum::<isize>()
+
+    // x_values
+    // .iter()
+    // .enumerate()
+    // .fold(0, |acc, (idx, value)| {
+    //     if idx % 20 == 0 && idx % 40 != 0 {
+    //         acc + (idx as isize * value)
+    //     } else {
+    //         acc 
+    //     }
+    // })
+
 }
 
 
@@ -108,43 +153,34 @@ fn part_2_function(input: &Vec<Command>) -> Vec<Vec<char>> {
             Command::AddX(value) => {
 
                 update_screen!(clock, x_reg, row);
-
+                // Load
                 clock += 1;
-
-                if clock % 40 == 0 {
-                    screen.push(row.clone());
-                    row = vec!['.'; 40];
-                }
+                new_row!(clock, screen, row);
                 update_screen!(clock, x_reg, row);
 
                 // execute
                 clock += 1;
                 x_reg += value;
-                if clock % 40 == 0 {
-                    screen.push(row.clone());
-                    row = vec!['.'; 40];
-                }
+                new_row!(clock, screen, row);
                 update_screen!(clock, x_reg, row);
             },
             Command::NOOP => {
                 // load and exe
                 clock += 1;
-                if clock % 40 == 0 {
-                    screen.push(row.clone());
-                    row = vec!['.'; 40];
-                }
+                new_row!(clock, screen, row);
                 update_screen!(clock, x_reg, row);
             }
         }
         
     }
-    for x in 0..6 {
-        let mut row = String::new();
-        for y in 0..40 {
-            row +=  format!(" {} ", screen[x][y].to_string()).as_str();
-        }
-        println!("{}", row);
-    } 
+    print_screen!(6, 40, screen);
+    // for x in 0..6 {
+    //     let mut row = String::new();
+    //     for y in 0..40 {
+    //         row +=  format!(" {} ", screen[x][y].to_string()).as_str();
+    //     }
+    //     println!("{}", row);
+    // } 
 
     screen
 }
